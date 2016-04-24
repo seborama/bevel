@@ -10,4 +10,5 @@ go get github.com/seborama/bevel
 ```
 
 ## Usage
-For a simple example of usage, please see `main_test.go`.
+For a simple example of usage, please see [main_test.go](https://github.com/seborama/bevel/blob/0.1/main_test.go).
+
