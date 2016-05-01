@@ -34,8 +34,18 @@ func StartNewListener(w Writer) *Manager {
 
 // Done sends the listener a message to terminate.
 func (bem *Manager) Done() {
+	if bem.done == nil {
+		return
+	}
+
 	bem.done <- true // Sending listen() goroutine "termination Ping"
 	<-bem.done       // Waiting for listen() goroutine to respond with "termination Pong"
+
+	close(bem.bus)
+	bem.bus = nil
+
+	close(bem.done)
+	bem.done = nil
 }
 
 // MessageEnvelop wraps Message with additional info.
@@ -47,6 +57,10 @@ type MessageEnvelop struct {
 // Post sends a Message to the business event message bus
 // for ingestion by all Writer's in the WriterPool.
 func (bem *Manager) Post(m Message) {
+	if bem.bus == nil || bem.done == nil {
+		return
+	}
+
 	me := MessageEnvelop{
 		ProcessedTSUnixNano: time.Now().UnixNano(),
 		Message:             m,

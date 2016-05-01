@@ -25,6 +25,6 @@ func (bew *ConsoleBEWriter) Write(m Message) error {
 		return ErrUnableToTranscodeMessage
 	}
 
-	fmt.Printf("%s\n", string(json))
-	return nil
+	_, err = fmt.Printf("%s\n", string(json))
+	return err
 }
