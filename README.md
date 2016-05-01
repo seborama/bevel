@@ -12,6 +12,20 @@ go get github.com/seborama/bevel
 ```
 
 
+## High level architecture
+Messages are posted to the Manager's listener loop.
+
+The listener passes messages to each of the registered Writers. 
+
+Writers are then free to process and persist messages as they please.
+
+                               Manager                             Writer
+                             ____________                    ___________________
+             Post(Message)  |            |  Write(Message)  |                   |
+    Message  >>>>>>>>>>>>>  |  Listener  |  >>>>>>>>>>>>>>  |  ConsoleBEWriter  |
+                            |____________|                  |___________________|
+
+
 ## Usage
 For a simple example of usage, please see [main_test.go](https://github.com/seborama/bevel/blob/0.1/main_test.go).
 
@@ -22,6 +36,7 @@ The example defines a `CounterMsg` that acts as a business event.
 To get started, we create a message structure to hold our information about the Business Event.
 
 Our message must embed the `StandardMessage` structure as demonstrated below.
+
 `StandardMessage` implements  `Message`, an interface that is consumed by `Writer` implementations.
 
 ```go
@@ -45,6 +60,7 @@ We now need to create a listener to receive our `CounterMsg` (which is a `Messag
 ```
 
 This function is at the heart of `bevel`, the Business Events Logger and performs these actions:
+
 1. It registers the supplied Writer (in this instance a simple Console Writer called) in the `WriterPool`.
 2. It creates a `Manager` and starts the `Manager`'s listener.
 3. Finally, it returns the Manager for our use.
