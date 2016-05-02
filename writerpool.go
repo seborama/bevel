@@ -63,8 +63,8 @@ func (bewp *WriterPool) String() string {
 }
 
 // NewWriterPool creates a new WriterPool.
-func NewWriterPool() WriterPool {
+func NewWriterPool() *WriterPool {
 	wp := WriterPool{writers: []Writer{}}
 
-	return wp
+	return &wp
 }
