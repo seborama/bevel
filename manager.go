@@ -17,7 +17,7 @@ type Manager struct {
 // StartNewListener creates a new business event bus and adds
 // a Writer to the WriterPool.
 func StartNewListener(w Writer) *Manager {
-	wp := NewWriterPool()
+	wp := *NewWriterPool()
 	wp.AddWriter(w)
 
 	bem := Manager{
