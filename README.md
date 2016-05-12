@@ -101,4 +101,4 @@ The key method to note here is `Post()`.
 
 
 #### Step 5 - When we're done, let the listener know via the `Manager`
-This was already prepared via `defer` above, at step 1.
+This was already prepared via `defer` above, at step 2.
