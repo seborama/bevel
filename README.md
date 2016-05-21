@@ -1,7 +1,7 @@
 # bevel
 An angle on Business Event Logger in Golang.
 
-[![Build Status](https://travis-ci.org/seborama/bevel.svg?branch=master)](https://travis-ci.org/seborama/bevel)
+[![Build Status](https://travis-ci.org/seborama/bevel.svg?branch=master)](https://travis-ci.org/seborama/bevel) [![Coverage Status](https://coveralls.io/repos/github/seborama/bevel/badge.svg?branch=master)](https://coveralls.io/github/seborama/bevel?branch=master)
 
 
 ## Installation
