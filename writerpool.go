@@ -13,6 +13,12 @@ type Writer interface {
 	Write(Message) error
 }
 
+// Closer is an interface that defines the operations
+// that Closer implementors must adhere to.
+type Closer interface {
+	Close() error
+}
+
 // WriterPool is a thread-safe pool of Writer's.
 type WriterPool struct {
 	sync.Mutex

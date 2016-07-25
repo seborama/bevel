@@ -92,8 +92,8 @@ func (bem *Manager) listen() {
 		bem.done <- true // Sending "Termination Pong" response
 	}()
 
-	loop := true
-	for loop {
+Loop:
+	for {
 		select {
 		case m := <-bem.bus:
 			// Received a Message.
@@ -101,8 +101,7 @@ func (bem *Manager) listen() {
 			bem.writeMessage(m)
 		case <-bem.done:
 			// Received "Termination Ping" request.
-			loop = false
-			break
+			break Loop
 		}
 	}
 }
