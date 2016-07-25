@@ -12,6 +12,22 @@ To install, use the standard Go installation procedure:
 go get github.com/seborama/bevel
 ```
 
+You can pick a specific major release for compatibility. For example, to use a v1.x release, use this command:
+
+```bash
+go get gopkg.in/seborama/bevel.v1
+```
+
+And your source code would use this import:
+
+```go
+import "gopkg.in/seborama/bevel.v1"
+```
+
+## Documentation
+
+The code documentation can be found on [godoc](http://godoc.org/github.com/seborama/bevel).
+
 ## Project contents
 
 - Bevel:
