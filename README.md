@@ -2,6 +2,8 @@
 
 An angle on Business Event Logger in Golang.
 
+**bevel** is a simple and extensible module that provides a generalised approach to logging business events in an application.
+
 [![Build Status](https://travis-ci.org/seborama/bevel.svg?branch=master)](https://travis-ci.org/seborama/bevel)
 
 ## Installation
