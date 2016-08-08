@@ -10,6 +10,8 @@ Examples are supplied to get started in minutes.
 
 An application only needs to create a message for the business event and post it to the **bevel** bus. The bus will relay the messages to the registered writers. That's all it takes!
 
+By design, **bevel** can be used as an event loop dispatcher: the listeners are the ** bevel writers** and the dispatcher is the **bevel Manager** (where **events** are sent to for disptaching).
+
 ## Installation
 
 To install, use the standard Go installation procedure:
