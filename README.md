@@ -10,7 +10,7 @@ Examples are supplied to get started in minutes.
 
 An application only needs to create a message for the business event and post it to the **bevel** bus. The bus will relay the messages to the registered writers. That's all it takes!
 
-By design, **bevel** can be used as an event loop dispatcher: the listeners are the ** bevel writers** and the dispatcher is the **bevel Manager** (where **events** are sent to for disptaching).
+By design, **bevel** can be used as an event loop dispatcher: the listeners are the **bevel writers** and the dispatcher is the **bevel Manager** (where **events** are sent to for disptaching).
 
 ## Installation
 
@@ -105,8 +105,8 @@ We now need to create a listener to receive our `CounterMsg` (which is a `Messag
 This function is at the heart of `bevel`, the Business Events Logger and performs these actions:
 
 1. It registers the supplied Writer (in this instance a simple Console Writer called) in the `WriterPool`.
-2. It creates a `Manager` and starts the `Manager`'s listener.
-3. Finally, it returns the Manager for our use.
+1. It creates a `Manager` and starts the `Manager`'s listener.
+1. Finally, it returns the Manager for our use.
 
 In addition to running the main Business Event listener, a `Manager` offer convenient services:
 
