@@ -13,6 +13,10 @@ func (r testWriter1) Write(m bevel.Message) error {
 	return nil
 }
 
+func (r testWriter1) Close() error {
+	return nil
+}
+
 func TestStartNewListener(t *testing.T) {
 	// one writer, no messages
 	w := testWriter1{}
@@ -30,7 +34,7 @@ func TestStartNewListener(t *testing.T) {
 	m := bevel.StandardMessage{}
 	bem.Post(m)
 	bem.Post(m)
-	bem.Done() // ensure all messages have been processed
+	bem.Close() // ensure all messages have been processed
 	s = bem.String()
 	if s != "Registered writers: bevel_test.testWriter1 - Total number of messages posted: 2" {
 		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
@@ -46,7 +50,7 @@ func TestStartNewListener(t *testing.T) {
 	}
 }
 
-func TestDone(t *testing.T) {
+func TestClose(t *testing.T) {
 	// Tested in TestStartNewListener()
 }
 
@@ -64,7 +68,7 @@ func TestAddWriter(t *testing.T) {
 	if bem == nil {
 		t.Error("StartNewListener should have returned a Manager but it returned nil")
 	}
-	defer bem.Done()
+	defer bem.Close()
 
 	w2 := testWriter2{}
 	bem.AddWriter(w2)

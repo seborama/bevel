@@ -3,7 +3,6 @@ package bevel
 import (
 	"encoding/json"
 	"errors"
-	"log"
 
 	"github.com/Shopify/sarama"
 )
@@ -19,16 +18,21 @@ type KafkaBEWriter struct {
 }
 
 // NewKafkaBEWriter creates a new KafkaBEWriter using the given broker addresses and configuration.
-func NewKafkaBEWriter(addrs []string, config *sarama.Config, topic string) Writer {
-	producer, err := sarama.NewSyncProducer([]string{"localhost:9092"}, nil)
+func NewKafkaBEWriter(brokers []string, config *sarama.Config, topic string) (WriteCloser, error) {
+	if config == nil {
+		config = sarama.NewConfig()
+	}
+
+	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	return &KafkaBEWriter{
-		producer: producer,
-		topic:    topic,
-	}
+			producer: producer,
+			topic:    topic,
+		},
+		nil
 }
 
 // Write outputs the contents of Message to a Kafka topic.

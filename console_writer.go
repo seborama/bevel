@@ -28,3 +28,8 @@ func (bew *ConsoleBEWriter) Write(m Message) error {
 	_, err = fmt.Printf("%s\n", string(json))
 	return err
 }
+
+// Close does not perform any action in the case of ConsoleBEWriter.
+func (bew *ConsoleBEWriter) Close() error {
+	return nil
+}
