@@ -19,7 +19,7 @@ func TestBevel(t *testing.T) {
 	// Start new BEManager with a Console Business Event Writer.
 	bem := bevel.StartNewListener(&bevel.ConsoleBEWriter{})
 	defer func() {
-		bem.Done()
+		bem.Close()
 	}()
 
 	// Add another Console Business Event Writer just to show it can be done.
