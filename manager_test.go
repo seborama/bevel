@@ -26,7 +26,7 @@ func TestStartNewListener(t *testing.T) {
 	}
 
 	s := bem.String()
-	if s != "Registered writers: bevel_test.testWriter1 - Total number of messages posted: 0" {
+	if s != "Registered writers: bevel_test.testWriter1 - total number of messages posted: 0" {
 		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
 	}
 
@@ -36,7 +36,7 @@ func TestStartNewListener(t *testing.T) {
 	bem.Post(m)
 	bem.Close() // ensure all messages have been processed
 	s = bem.String()
-	if s != "Registered writers: bevel_test.testWriter1 - Total number of messages posted: 2" {
+	if s != "Registered writers: bevel_test.testWriter1 - total number of messages posted: 2" {
 		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
 	}
 
@@ -45,7 +45,7 @@ func TestStartNewListener(t *testing.T) {
 	// should not accept the message (internal msgCounter unchanged)
 	bem.Post(m)
 	s = bem.String()
-	if s != "Registered writers: bevel_test.testWriter1 - Total number of messages posted: 2" {
+	if s != "Registered writers: bevel_test.testWriter1 - total number of messages posted: 3" {
 		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
 	}
 }
@@ -73,7 +73,7 @@ func TestAddWriter(t *testing.T) {
 	w2 := testWriter2{}
 	bem.AddWriter(w2)
 	s := bem.String()
-	if s != "Registered writers: bevel_test.testWriter1 bevel_test.testWriter2 - Total number of messages posted: 0" {
+	if s != "Registered writers: bevel_test.testWriter1 bevel_test.testWriter2 - total number of messages posted: 0" {
 		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
 	}
 }

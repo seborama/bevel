@@ -3,7 +3,8 @@ package bevel
 import (
 	"errors"
 	"fmt"
-	"time"
+	"log"
+	"sync"
 )
 
 // Closer is an interface that defines the operations
@@ -37,15 +38,10 @@ type EventBusManager interface {
 // It is the receiver of utility methods for consumers.
 type Manager struct {
 	done        chan bool
-	bus         chan MessageEnvelop
+	bus         chan Message
 	writersPool WriterPool
 	msgCounter  Counter
-}
-
-// MessageEnvelop wraps Message with additional info.
-type MessageEnvelop struct {
-	ProcessedTSUnixNano int64
-	Message             Message
+	wg          sync.WaitGroup
 }
 
 // StartNewListener creates a new business event bus and adds
@@ -55,10 +51,11 @@ func StartNewListener(w WriteCloser) EventBusManager {
 	wp.AddWriter(w)
 
 	bem := Manager{
-		make(chan bool),
-		make(chan MessageEnvelop),
-		wp,
-		Counter{0},
+		done:        make(chan bool),
+		bus:         make(chan Message),
+		writersPool: wp,
+		msgCounter:  Counter{0},
+		wg:          sync.WaitGroup{},
 	}
 
 	go bem.listen()
@@ -69,19 +66,25 @@ func StartNewListener(w WriteCloser) EventBusManager {
 // Post sends a Message to the business event message bus
 // for ingestion by all Writer's in the WriterPool.
 func (bem *Manager) Post(m Message) {
-	// ensure the bus is open for messages (i.e. "post office is open")
-	if bem.bus == nil || bem.done == nil {
-		return
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			// manual attempt to send write the message
+			log.Println("error posting to the event bus - sending synchronously:", r)
+			bem.msgCounter.Inc()
+			bem.writeMessage(NewMesageEnvelop(m))
+		}
 
-	// wrap the application message into an envelop (i.e. "put the letter in an envelop and affix a stamp")
-	me := MessageEnvelop{
-		ProcessedTSUnixNano: time.Now().UnixNano(),
-		Message:             m,
-	}
+		bem.wg.Done()
+	}()
+
+	bem.wg.Add(1)
 
 	// post the envelop on the bus (i.e. "post the letter")
-	bem.bus <- me
+	if bem.bus == nil || bem.done == nil {
+		panic("the event bus is closed")
+	}
+
+	bem.bus <- NewMesageEnvelop(m)
 }
 
 // AddWriter adds a Writer to the WriterPool.
@@ -96,25 +99,25 @@ func (bem *Manager) writeMessage(m Message) {
 // String implements Stringer.
 func (bem *Manager) String() string {
 	s := bem.writersPool.String()
-	s += fmt.Sprintf(" - Total number of messages posted: %d", bem.msgCounter.Get())
+	s += fmt.Sprintf(" - total number of messages posted: %d", bem.msgCounter.Get())
 
 	return fmt.Sprintf("%s", s)
 }
 
 // listen is the main loop of the business event loop.
 func (bem *Manager) listen() {
-	defer func() {
-		bem.done <- true // Sending "Termination Pong" response
-	}()
+	defer func() { bem.done <- true }()
 
 ListenerLoop:
 	for {
 		select {
-		case m := <-bem.bus:
-			// Received a Message wrapped in a MessageEnvelop.
-			// Call the writer to write it to destination - in this case to Kafka.
-			bem.msgCounter.Inc()
-			bem.writeMessage(m)
+		case m, ok := <-bem.bus:
+			if ok {
+				// Received a Message wrapped in a MessageEnvelop.
+				// Call the writer to write it to destination - in this case to Kafka.
+				bem.msgCounter.Inc()
+				bem.writeMessage(m)
+			}
 		case <-bem.done:
 			// Received "Termination Ping" request.
 			break ListenerLoop
@@ -128,14 +131,19 @@ func (bem *Manager) Close() error {
 		return errors.New("this event bus manager is already closed")
 	}
 
-	bem.done <- true // Sending listen() goroutine "termination Ping"
-	<-bem.done       // Waiting for listen() goroutine to respond with "termination Pong"
+	// wait for all Posters to complete
+	bem.wg.Wait()
 
 	close(bem.bus)
+	bem.done <- true
+	<-bem.done
 	bem.bus = nil
 
 	close(bem.done)
 	bem.done = nil
+
+	// pick up the Posters that may have spawned before we got a chance to close the channels.
+	bem.wg.Wait()
 
 	return nil
 }
