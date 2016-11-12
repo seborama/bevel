@@ -7,6 +7,8 @@ import (
 
 	"log"
 
+	"sync"
+
 	"github.com/seborama/bevel"
 )
 
@@ -22,15 +24,21 @@ func TestBevel(t *testing.T) {
 	bem := bevel.StartNewListener(&bevel.ConsoleBEWriter{})
 	defer func() {
 		bem.Close()
+
+		log.Println(bem)
+		s := bem.String()
+		if s != "Registered writers: *bevel.ConsoleBEWriter *bevel.ConsoleBEWriter - total number of messages posted: 5" {
+			t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
+		}
 	}()
 
 	// Add another Console Business Event Writer just to show it can be done.
 	bem.AddWriter(&bevel.ConsoleBEWriter{})
 
 	// Create some business events
-	j := 0
+	wg := sync.WaitGroup{}
+
 	for i := 1; i <= 5; i++ {
-		j = i
 		m := CounterMsg{
 			StandardMessage: bevel.StandardMessage{
 				EventName:         "test_event",
@@ -39,34 +47,14 @@ func TestBevel(t *testing.T) {
 			Counter: i,
 		}
 
-		go bem.Post(m)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			bem.Post(m)
+		}()
 	}
 
-	time.Sleep(time.Millisecond * 500)
-	s := bem.String()
-	if s != "Registered writers: *bevel.ConsoleBEWriter *bevel.ConsoleBEWriter - total number of messages posted: 5" {
-		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
-	}
-	bem.Close()
-
-	for i := j + 1; i <= j+5; i++ {
-		m := CounterMsg{
-			StandardMessage: bevel.StandardMessage{
-				EventName:         "test_event",
-				CreatedTSUnixNano: time.Now().UnixNano(),
-			},
-			Counter: i,
-		}
-
-		go bem.Post(m)
-	}
-
-	time.Sleep(time.Millisecond * 500)
-	log.Println(bem)
-	s = bem.String()
-	if s != "Registered writers: *bevel.ConsoleBEWriter *bevel.ConsoleBEWriter - total number of messages posted: 10" {
-		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
-	}
+	wg.Wait()
 }
 
 func TestMain(m *testing.M) {

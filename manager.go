@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"sync"
+	"time"
 )
 
 // Closer is an interface that defines the operations
@@ -41,7 +41,6 @@ type Manager struct {
 	bus         chan Message
 	writersPool WriterPool
 	msgCounter  Counter
-	wg          sync.WaitGroup
 }
 
 // StartNewListener creates a new business event bus and adds
@@ -55,7 +54,6 @@ func StartNewListener(w WriteCloser) EventBusManager {
 		bus:         make(chan Message),
 		writersPool: wp,
 		msgCounter:  Counter{0},
-		wg:          sync.WaitGroup{},
 	}
 
 	go bem.listen()
@@ -66,22 +64,12 @@ func StartNewListener(w WriteCloser) EventBusManager {
 // Post sends a Message to the business event message bus
 // for ingestion by all Writer's in the WriterPool.
 func (bem *Manager) Post(m Message) {
-	defer func() {
-		if r := recover(); r != nil {
-			// manual attempt to send write the message
-			log.Println("error posting to the event bus - sending synchronously:", r)
-			bem.msgCounter.Inc()
-			bem.writeMessage(NewMesageEnvelop(m))
-		}
-
-		bem.wg.Done()
-	}()
-
-	bem.wg.Add(1)
+	time.Sleep(time.Second)
 
 	// post the envelop on the bus (i.e. "post the letter")
 	if bem.bus == nil || bem.done == nil {
-		panic("the event bus is closed")
+		log.Printf("the event bus is closed - lost message: %#v", m)
+		return
 	}
 
 	bem.bus <- NewMesageEnvelop(m)
@@ -126,13 +114,15 @@ ListenerLoop:
 }
 
 // Close closes the channels in the Manager.
+// The recommended approach wiis for a channel to be use unidirectionally and
+// be closed by the sender rather than the receivers.
+// This means that it is the responsibility of the Posters to close the
+// event bus when no more messages are being posted.
+// See an example implementation in main_test using a sync.WaitGroup.
 func (bem *Manager) Close() error {
 	if bem.done == nil {
 		return errors.New("this event bus manager is already closed")
 	}
-
-	// wait for all Posters to complete
-	bem.wg.Wait()
 
 	close(bem.bus)
 	bem.done <- true
@@ -141,9 +131,6 @@ func (bem *Manager) Close() error {
 
 	close(bem.done)
 	bem.done = nil
-
-	// pick up the Posters that may have spawned before we got a chance to close the channels.
-	bem.wg.Wait()
 
 	return nil
 }
