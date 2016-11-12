@@ -2,6 +2,7 @@ package bevel_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/seborama/bevel"
 )
@@ -31,7 +32,7 @@ func TestStartNewListener(t *testing.T) {
 	}
 
 	// one writer, two messages
-	m := bevel.StandardMessage{}
+	m := bevel.StandardMessage{EventName: "lost_event", CreatedTSUnixNano: time.Now().UnixNano()}
 	bem.Post(m)
 	bem.Post(m)
 	bem.Close() // ensure all messages have been processed
@@ -40,12 +41,12 @@ func TestStartNewListener(t *testing.T) {
 		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
 	}
 
-	// one message past call to Done()
-	// should not timeout & panic
+	// one message past call to Close()
+	// should not timeout nor panic
 	// should not accept the message (internal msgCounter unchanged)
 	bem.Post(m)
 	s = bem.String()
-	if s != "Registered writers: bevel_test.testWriter1 - total number of messages posted: 3" {
+	if s != "Registered writers: bevel_test.testWriter1 - total number of messages posted: 2" {
 		t.Errorf("Manager is not in the expected state after call to StartNewListener: %s\n", s)
 	}
 }
