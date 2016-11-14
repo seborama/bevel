@@ -114,7 +114,7 @@ ListenerLoop:
 }
 
 // Close closes the channels in the Manager.
-// The recommended approach wiis for a channel to be use unidirectionally and
+// The recommended approach is for a channel to be used unidirectionally and
 // be closed by the sender rather than the receivers.
 // This means that it is the responsibility of the Posters to close the
 // event bus when no more messages are being posted.
