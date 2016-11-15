@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 )
 
 // Closer is an interface that defines the operations
@@ -64,9 +63,7 @@ func StartNewListener(w WriteCloser) EventBusManager {
 // Post sends a Message to the business event message bus
 // for ingestion by all Writer's in the WriterPool.
 func (bem *Manager) Post(m Message) {
-	time.Sleep(time.Second)
-
-	// post the envelop on the bus (i.e. "post the letter")
+	// ensure the bus is open for messages (i.e. "post office is open")
 	if bem.bus == nil || bem.done == nil {
 		log.Printf("the event bus is closed - lost message: %#v", m)
 		return
@@ -94,7 +91,9 @@ func (bem *Manager) String() string {
 
 // listen is the main loop of the business event loop.
 func (bem *Manager) listen() {
-	defer func() { bem.done <- true }()
+	defer func() {
+		bem.done <- true // Sending "Termination Pong" response
+	}()
 
 ListenerLoop:
 	for {
@@ -108,6 +107,11 @@ ListenerLoop:
 			}
 		case <-bem.done:
 			// Received "Termination Ping" request.
+			// Drain the remaining messages on the bus and break out.
+			for m := range bem.bus {
+				bem.msgCounter.Inc()
+				bem.writeMessage(m)
+			}
 			break ListenerLoop
 		}
 	}
